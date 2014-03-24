@@ -1,6 +1,8 @@
 %% configurations
-pat = [0 0 0 0 0 0 1];
-len = 1000;
+pat = [0 0 0 1];
+len = 300;
+M = 12;
+A = 11;
 PHSTEP = 64;
 
 %% initialization
@@ -9,7 +11,7 @@ pulse_in = repmat(pat, 1, len);
 %% run
 pulse_out = zeros(1, length(pulse_in));
 for i = 1:length(pat)*len
-    pulse_out(i) = rc(pulse_in(i), 12, 11);
+    pulse_out(i) = rc(pulse_in(i), M, A);
 end
 
 %% analysis
@@ -23,9 +25,14 @@ for i=2:length(pulse_out)
     phase_out(i) = mod(phase_out(i-1) + pulse_out(i), PHSTEP);
 end
 
-plot(mod(phase_out-phase_in, PHSTEP));
+pulse_ideal = repmat(pat .* (M/A), 1, len);
+phase_ideal = pulse_ideal;
+for i=2:length(pulse_out)
+    phase_ideal(i) = mod(phase_ideal(i-1) + pulse_ideal(i), PHSTEP);
+end
 
-
-%%
+plot(mod(phase_out-phase_ideal, PHSTEP), 'ro');
+hold on;
+plot(mod(phase_in-phase_ideal, PHSTEP), 'x');
 
 
