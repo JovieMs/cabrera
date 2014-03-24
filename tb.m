@@ -1,6 +1,6 @@
 %% configurations
 pat = [0 0 0 1];
-len = 300;
+len = 1000000;
 M = 12;
 A = 11;
 PHSTEP = 64;
@@ -31,8 +31,15 @@ for i=2:length(pulse_out)
     phase_ideal(i) = mod(phase_ideal(i-1) + pulse_ideal(i), PHSTEP);
 end
 
-plot(mod(phase_out-phase_ideal, PHSTEP), 'ro');
-hold on;
-plot(mod(phase_in-phase_ideal, PHSTEP), 'x');
+phase_out_vs_ideal = mod(phase_out-phase_ideal, PHSTEP);
+phase_in_vs_ideal = mod(phase_in-phase_ideal, PHSTEP);
 
+t = phase_out_vs_ideal >= 32;
+phase_out_vs_ideal(t) = phase_out_vs_ideal(t) - 64;
+t = phase_in_vs_ideal >= 32;
+phase_in_vs_ideal(t) = phase_in_vs_ideal(t) - 64;
 
+t = 1:length(phase_out_vs_ideal);
+%plot(t, phase_out_vs_ideal, 'ro', t, phase_in_vs_ideal, 'x');
+plot(t, phase_out_vs_ideal, 'ro');
+legend('phase out vs ideal', 'phase in vs ideal');
