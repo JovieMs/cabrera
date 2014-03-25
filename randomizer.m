@@ -40,7 +40,7 @@ for i = 1:size(poly_cell, 1)
         set(gcf, 'Position', [0 0 900 400])
         subplot(1,2,1);
         hist(r-act_mean, 20);
-        title({'histogram of r - actual mean', 
+        title({'histogram of r - actual mean'
             ['actual mean = ' num2str(act_mean) '; expected mean = ' num2str(exp_mean)]});
         subplot(1,2,2);
         plot(y(1:len)); grid on;
