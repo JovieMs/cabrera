@@ -2,20 +2,23 @@ clc;clear;
 
 %% configurations
 pat = [0 0 0 1];
-len = 1600;
+len = 5050;
 M = 12;
 A = 11;
 PHSTEP = 64;
+jitter = [  repmat([zeros(1, 100) 1], [1 50]), repmat([zeros(1, 100) -1], [1 50]) repmat([zeros(1, 100) 1], [1 50]), repmat([zeros(1, 100) -1], [1 50])];
 
 %% initialization
 pulse_in = repmat(pat, 1, len);
+%pulse_in = jitter;
+
 
 %% run
 pulse_out = zeros(1, length(pulse_in));
 pulse_out_dither = zeros(1, length(pulse_in));
 for i = 1:length(pat)*len
     pulse_out(i) = rc(pulse_in(i), M, A, 'none');
-    pulse_out_dither(i) = rc(pulse_in(i), M, A, 'prbs');
+    pulse_out_dither(i) = rc(pulse_in(i), M, A, 'float');
 end
 
 %% pulse shaping output comparisons
@@ -67,3 +70,15 @@ t = 1:length(phase_out_vs_ideal);
 figure;
 plot(t, phase_out_vs_ideal, '-ro', t, phase_out_dither_vs_ideal, '-x');
 legend('phase out vs ideal', 'phase out w/ dither vs ideal');
+
+%% TX PI jitter filter
+b = 2^-10;
+a = [1 -(1-b)];
+pulse_out_dither_filt = filter(b, a, pulse_out_dither);
+pulse_out_filt = filter(b, a, pulse_out);
+
+t = 1:length(pulse_out_filt);
+figure;
+plot(t, pulse_out_filt, '-b', t, pulse_out_dither_filt, '-r');
+legend('phase out filter', 'phase out w/ dither filter');
+
