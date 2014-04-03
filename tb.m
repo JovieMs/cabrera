@@ -1,14 +1,13 @@
-clc;clear;
+clc;clear;close all;
 
 %% configurations
 pat = [0 0 0 1];
-len = 5050;
+len = 2^13*8;
 M = 12;
 A = 11;
 PHSTEP = 64;
 jitter = [  repmat([zeros(1, 100) 1], [1 50]), repmat([zeros(1, 100) -1], [1 50]) repmat([zeros(1, 100) 1], [1 50]), repmat([zeros(1, 100) -1], [1 50])];
 
-%% initialization
 pulse_in = repmat(pat, 1, len);
 %pulse_in = jitter;
 
@@ -18,11 +17,11 @@ pulse_out = zeros(1, length(pulse_in));
 pulse_out_dither = zeros(1, length(pulse_in));
 for i = 1:length(pat)*len
     pulse_out(i) = rc(pulse_in(i), M, A, 'none');
-    pulse_out_dither(i) = rc(pulse_in(i), M, A, 'float');
+    pulse_out_dither(i) = rc(pulse_in(i), M, A, 'prbs');
 end
 
 %% pulse shaping output comparisons
-disp_len = 1:80;
+disp_len = 1:200;
 figure;
 set(gcf, 'Position', [0 0 900 400])
 subplot(2,1,1)
@@ -79,6 +78,33 @@ pulse_out_filt = filter(b, a, pulse_out);
 
 t = 1:length(pulse_out_filt);
 figure;
-plot(t, pulse_out_filt, '-b', t, pulse_out_dither_filt, '-r');
+plot(t, pulse_out_filt, '-bx', t, pulse_out_dither_filt, '-r');
 legend('phase out filter', 'phase out w/ dither filter');
 
+%%
+NFFT = 2^(nextpow2(length(pulse_out)-1));
+z0 = fft(pulse_out, NFFT);
+z1 = fft(pulse_out_dither, NFFT);
+z0 = abs(z0(1:NFFT/2+1));
+z1 = abs(z1(1:NFFT/2+1));
+f = 463.5/2*linspace(0, 1, NFFT/2+1);
+
+t = 1:length(z0);
+figure;
+plot(f(t), z0(t), '-x', f(t), z1(t), ':ro');
+legend('without dithering', 'with dithering');
+
+%%
+% pulse_out_filt = pulse_out_filt(50000:end);
+% pulse_out_dither_filt = pulse_out_dither_filt(50000:end);
+% NFFT = 2^(nextpow2(length(pulse_out_filt)-1));
+% z0 = fft(pulse_out_filt, NFFT);
+% z1 = fft(pulse_out_dither_filt, NFFT);
+% z0 = abs(z0(1:NFFT/2+1));
+% z1 = abs(z1(1:NFFT/2+1));
+% f = 463.5/2*linspace(0, 1, NFFT/2+1);
+% 
+% t = 1:length(z0);
+% figure;
+% plot(f(t), z0(t), '-x', f(t), z1(t), ':ro');
+% legend('without dithering', 'with dithering');
